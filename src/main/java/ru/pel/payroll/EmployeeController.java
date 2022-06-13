@@ -2,6 +2,8 @@ package ru.pel.payroll;
 
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,8 +36,9 @@ public class EmployeeController {
     }
 
     @PostMapping("/employees")
-    public Employee newEmployee(@RequestBody Employee employee) {
-        return repository.save(employee);
+    public ResponseEntity<?> newEmployee(@RequestBody Employee newEmployee) {
+        EntityModel<Employee> entityModel = assembler.toModel(repository.save(newEmployee));
+        return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
     }
 
     @GetMapping("/employees/{id}")
