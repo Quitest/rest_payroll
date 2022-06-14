@@ -14,8 +14,8 @@ public class DatabaseLoader {
     @Bean
     public CommandLineRunner initDB(EmployeeRepository repository){
         return args -> {
-            LOG.info("Preloading "+repository.save(new Employee("Pit", "staff")));
-            LOG.info("Preloading "+repository.save(new Employee("Max", "director")));
+            LOG.info("Preloading "+repository.save(new Employee("Pit", "Smith", "staff")));
+            LOG.info("Preloading "+repository.save(new Employee("Max", "Green", "director")));
         };
     }
 }
