@@ -18,6 +18,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class OrderController {
     private final OrderRepository repository;
     private final OrderModelAssembler orderAssembler;
+    private final static String ORDER_NOT_FOUND = "Could not found order ";
 
     public OrderController(OrderRepository orderRepository, OrderModelAssembler orderAssembler) {
         this.repository = orderRepository;
@@ -35,7 +36,7 @@ public class OrderController {
 
     @DeleteMapping("/orders/{id}/cancel")
     public ResponseEntity<?> cancel(@PathVariable long id) {
-        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + id));
         if (order.getStatus() == Status.IN_PROGRESS) {
             order.setStatus(Status.CANCELLED);
             return ResponseEntity.ok(orderAssembler.toModel(repository.save(order)));
@@ -51,7 +52,7 @@ public class OrderController {
 
     @PutMapping("/orders/{id}/complete")
     public ResponseEntity<?> complete(@PathVariable long id) {
-        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + id));
 
         if (order.getStatus() == Status.IN_PROGRESS) {
             order.setStatus(Status.COMPLETED);
@@ -79,7 +80,7 @@ public class OrderController {
 
     @GetMapping("/orders/{id}")
     public EntityModel<Order> one(@PathVariable long id) {
-        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + id));
         return orderAssembler.toModel(order);
     }
 
