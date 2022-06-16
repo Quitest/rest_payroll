@@ -33,27 +33,10 @@ public class OrderController {
                 linkTo(methodOn(OrderController.class).all()).withSelfRel());
     }
 
-    @GetMapping("/orders/{id}")
-    public EntityModel<Order> one(@PathVariable long id) {
-        Order order = repository.findById(id).orElseThrow(); //TODO добавить кастомный эксепшен
-        return orderAssembler.toModel(order);
-    }
-
-    @PostMapping("/orders")
-    public ResponseEntity<EntityModel<Order>> newOrder(@RequestBody Order newOrder){
-        newOrder.setStatus(Status.IN_PROGRESS);
-        Order order = repository.save(newOrder);
-        EntityModel<Order> orderEntityModel = orderAssembler.toModel(order);
-        return ResponseEntity
-//                .created(orderEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()) //TODO сравнить с нижним вариантом
-                .created(linkTo(methodOn(OrderController.class).one(order.getId())).toUri())
-                .body(orderAssembler.toModel(order));
-    }
-
     @DeleteMapping("/orders/{id}/cancel")
-    public ResponseEntity<?> cancel(@PathVariable long id){
-        Order order = repository.findById(id).orElseThrow(); //TODO добавить кастомный эксепшен
-        if (order.getStatus() == Status.IN_PROGRESS){
+    public ResponseEntity<?> cancel(@PathVariable long id) {
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
+        if (order.getStatus() == Status.IN_PROGRESS) {
             order.setStatus(Status.CANCELLED);
             return ResponseEntity.ok(orderAssembler.toModel(repository.save(order)));
         }
@@ -67,10 +50,10 @@ public class OrderController {
     }
 
     @PutMapping("/orders/{id}/complete")
-    public ResponseEntity<?> complete(@PathVariable long id){
-        Order order = repository.findById(id).orElseThrow(); //TODO сделать кастомное исалючение
+    public ResponseEntity<?> complete(@PathVariable long id) {
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
 
-        if (order.getStatus() == Status.IN_PROGRESS){
+        if (order.getStatus() == Status.IN_PROGRESS) {
             order.setStatus(Status.COMPLETED);
             return ResponseEntity.ok(orderAssembler.toModel(order));
         }
@@ -81,6 +64,23 @@ public class OrderController {
                 .body(Problem.create()
                         .withTitle("Method not allowed")
                         .withDetail("You can't complete an order that is in the " + order.getStatus() + " status"));
+    }
+
+    @PostMapping("/orders")
+    public ResponseEntity<EntityModel<Order>> newOrder(@RequestBody Order newOrder) {
+        newOrder.setStatus(Status.IN_PROGRESS);
+        Order order = repository.save(newOrder);
+        EntityModel<Order> orderEntityModel = orderAssembler.toModel(order);
+        return ResponseEntity
+//                .created(orderEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()) //TODO сравнить с нижним вариантом
+                .created(linkTo(methodOn(OrderController.class).one(order.getId())).toUri())
+                .body(orderAssembler.toModel(order));
+    }
+
+    @GetMapping("/orders/{id}")
+    public EntityModel<Order> one(@PathVariable long id) {
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException("Could not find employee " + id));
+        return orderAssembler.toModel(order);
     }
 
 
